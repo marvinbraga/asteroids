@@ -66,13 +66,13 @@ class CollisionManager:
         hits = pygame.sprite.spritecollide(self.game.player, self.game.powerups, False, collided=lambda player, powerup: player.position.distance_to(powerup.position) < player.radius + powerup.radius)
         for powerup in hits:
             powerup.active = False
-            self.game.apply_powerup(powerup.type)
+            self.game.logic.apply_powerup(powerup.type)
 
         self.game.powerups = pygame.sprite.Group(p for p in self.game.powerups if p.active)
 
     def _check_player_asteroid_collisions(self):
         for asteroid in self.game.asteroids.sprites():
-            if self.game.player.position.distance_to(asteroid.position) < self.game.player.radius + asteroid.radius:
+            if self.game.player.invincible_timer <= 0 and self.game.player.position.distance_to(asteroid.position) < self.game.player.radius + asteroid.radius:
                 if self.game.player.shielded:
                     self.game.player.shielded = False
                     asteroid.active = False

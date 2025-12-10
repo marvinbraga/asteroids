@@ -29,9 +29,21 @@ class Player(GameObject):
         self.speed_boost = 1.0
         self.multishot = False
         self.powerup_timer = 0
+        self.invincible_timer = 0
+
+    def reset_powerups(self) -> None:
+        """Reset all power-up effects."""
+        self.shielded = False
+        self.speed_boost = 1.0
+        self.multishot = False
+        self.powerup_timer = 0
+        self.invincible_timer = 0
 
     def update(self, dt: float, keys, screen_width: int, screen_height: int):
         current_time = pygame.time.get_ticks() / 1000.0  # Convert to seconds
+
+        # Update invincibility timer
+        self.invincible_timer = max(0, self.invincible_timer - dt)
 
         # Track thrusting state
         was_thrusting = self.thrusting
@@ -72,9 +84,7 @@ class Player(GameObject):
         if self.powerup_timer > 0:
             self.powerup_timer -= dt
             if self.powerup_timer <= 0:
-                self.shielded = False
-                self.speed_boost = 1.0
-                self.multishot = False
+                self.reset_powerups()
 
         # Spawn thrust particles
         if self.thrusting:

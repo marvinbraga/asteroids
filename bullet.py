@@ -20,4 +20,4 @@ class Bullet(GameObject):
         self.wrap_position(screen_width, screen_height)
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, WHITE, (int(self.position.x), int(self.position.y)), self.radius)
+        pygame.draw.circle(screen, (255, 0, 0), (int(self.position.x), int(self.position.y)), self.radius)

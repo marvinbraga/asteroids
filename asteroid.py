@@ -4,6 +4,10 @@ import math
 from game_object import GameObject
 from constants import ASTEROID_SIZES, GRAY, ASTEROID_COLORS
 
+ASTEROID_MIN_POINTS = 5
+ASTEROID_MAX_POINTS = 14
+ASTEROID_RADIUS_VARIANCE = (0.8, 1.2)
+
 
 class Asteroid(GameObject):
     def __init__(self, position: pygame.Vector2, size: str = 'large'):
@@ -27,13 +31,14 @@ class Asteroid(GameObject):
         self.shape_points = self._generate_shape()
         self.color = random.choice(ASTEROID_COLORS)
 
-    def _generate_shape(self):
+    def _generate_shape(self) -> list[pygame.Vector2]:
         """Generate irregular asteroid shape"""
         points = []
-        num_points = random.randint(5, 14)
+        num_points = random.randint(ASTEROID_MIN_POINTS, ASTEROID_MAX_POINTS)
+        min_radius, max_radius = ASTEROID_RADIUS_VARIANCE
         for i in range(num_points):
             angle = (i / num_points) * 2 * math.pi
-            distance = self.radius * random.uniform(0.8, 1.2)
+            distance = self.radius * random.uniform(min_radius, max_radius)
             points.append(pygame.Vector2(math.cos(angle) * distance, math.sin(angle) * distance))
         return points
 

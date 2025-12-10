@@ -69,6 +69,7 @@ POWERUP_COLORS = {'shield': (0, 255, 255), 'speed': (255, 255, 0), 'multishot': 
 # Sounds
 import pygame
 import os
+from typing import Optional
 
 SOUNDS_DIR = 'assets/sounds'
 SOUND_SHOOT = None
@@ -80,21 +81,22 @@ MASTER_VOLUME = 0.7
 MUSIC_VOLUME = 0.5
 SFX_VOLUME = 0.6
 
-def load_sounds():
-    global SOUND_SHOOT, SOUND_EXPLODE, SOUND_THRUST
-    try:
-        SOUND_SHOOT = pygame.mixer.Sound(os.path.join(SOUNDS_DIR, 'shoot.wav')) if os.path.exists(os.path.join(SOUNDS_DIR, 'shoot.wav')) else None
-        SOUND_EXPLODE = pygame.mixer.Sound(os.path.join(SOUNDS_DIR, 'explode.wav')) if os.path.exists(os.path.join(SOUNDS_DIR, 'explode.wav')) else None
-        SOUND_THRUST = pygame.mixer.Sound(os.path.join(SOUNDS_DIR, 'thrust.wav')) if os.path.exists(os.path.join(SOUNDS_DIR, 'thrust.wav')) else None
-        if SOUND_SHOOT:
-            SOUND_SHOOT.set_volume(SFX_VOLUME)
-        if SOUND_EXPLODE:
-            SOUND_EXPLODE.set_volume(SFX_VOLUME)
-        if SOUND_THRUST:
-            SOUND_THRUST.set_volume(SFX_VOLUME)
-    except Exception as e:
-        print(f"Warning: Could not load sounds: {e}")
-        SOUND_SHOOT = SOUND_EXPLODE = SOUND_THRUST = None
+def load_sounds() -> tuple[Optional[pygame.mixer.Sound], ...]:
+    sounds = []
+    sound_files = ['shoot.wav', 'explode.wav', 'thrust.wav']
+    for file in sound_files:
+        path = os.path.join(SOUNDS_DIR, file)
+        try:
+            if os.path.exists(path):
+                sound = pygame.mixer.Sound(path)
+                sound.set_volume(SFX_VOLUME)
+                sounds.append(sound)
+            else:
+                sounds.append(None)
+        except pygame.error as e:
+            print(f"Warning: Could not load {file}: {e}")
+            sounds.append(None)
+    return tuple(sounds)
 
 # UI Positioning
 UI_SCORE_X = 10
