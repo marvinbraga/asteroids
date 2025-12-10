@@ -6,7 +6,8 @@ from asteroid import Asteroid
 from ufo import UFO
 from constants import (
     INITIAL_LIVES, INITIAL_LEVEL, BASE_ASTEROIDS, LEVEL_ASTEROID_INCREASE,
-    ASTEROID_SPAWN_DISTANCE, SPEED_INCREASE_PER_LEVEL, UFO_SPAWN_LEVEL, UFO_SPAWN_CHANCE
+    ASTEROID_SPAWN_DISTANCE, SPEED_INCREASE_PER_LEVEL, UFO_SPAWN_LEVEL, UFO_SPAWN_CHANCE,
+    POWERUP_DURATION, SPEED_BOOST_MULTIPLIER
 )
 
 if TYPE_CHECKING:
@@ -46,8 +47,6 @@ class GameLogic:
             bullet = ufo.shoot(self.game.player.position)
             if bullet:
                 self.game.ufo_bullets.add(bullet)
-
-        self.game.ufos.update(dt, self.game.screen_width, self.game.screen_height)
         self.game.ufo_bullets.update(dt, self.game.screen_width, self.game.screen_height)
 
         # Check collisions
@@ -79,11 +78,11 @@ class GameLogic:
             self.game.asteroids.add(asteroid)
 
     def apply_powerup(self, type_: str) -> None:
-        self.game.player.powerup_timer = self.game.constants.POWERUP_DURATION
+        self.game.player.powerup_timer = POWERUP_DURATION
         if type_ == 'shield':
             self.game.player.shielded = True
         elif type_ == 'speed':
-            self.game.player.speed_boost = 1.5
+            self.game.player.speed_boost = SPEED_BOOST_MULTIPLIER
         elif type_ == 'multishot':
             self.game.player.multishot = True
 

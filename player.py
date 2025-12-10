@@ -6,12 +6,18 @@ from particle import Particle
 from constants import (
     PLAYER_RADIUS, PLAYER_ROTATION_SPEED, PLAYER_THRUST, PLAYER_MAX_SPEED,
     PLAYER_DRAG, PLAYER_SHOOT_COOLDOWN, BULLET_SPEED, WHITE, ORANGE,
-    SOUND_SHOOT, THRUST_CHANNEL, SOUND_THRUST
+    SOUND_SHOOT, THRUST_CHANNEL, SOUND_THRUST, PARTICLE_FREQUENCY,
+    MULTISHOT_ANGLE, SPEED_BOOST_MULTIPLIER
 )
 import math
 
 
 class Player(GameObject):
+    """Player-controlled spaceship with movement, shooting, and power-up effects.
+
+    Handles input for rotation, thrust, and shooting. Supports power-ups like
+    shields, speed boosts, and multishot. Manages thrust particles and invincibility.
+    """
     def __init__(self, position: pygame.Vector2):
         super().__init__(position)
         self.radius = PLAYER_RADIUS
@@ -88,7 +94,7 @@ class Player(GameObject):
 
         # Spawn thrust particles
         if self.thrusting:
-            if random.random() < 0.5:  # Adjust frequency
+            if random.random() < PARTICLE_FREQUENCY:
                 direction = pygame.Vector2(0, 1).rotate(self.rotation)  # Backwards
                 particle_pos = self.position + direction * (self.radius + 5)
                 particle_vel = direction * random.uniform(100, 200) + self.velocity * 0.5
@@ -109,7 +115,7 @@ class Player(GameObject):
             bullets = [Bullet(bullet_pos, direction * BULLET_SPEED)]
             if self.multishot:
                 # Add side bullets
-                side_angle = 15  # degrees
+                side_angle = MULTISHOT_ANGLE
                 left_dir = direction.rotate(-side_angle)
                 right_dir = direction.rotate(side_angle)
                 bullets.append(Bullet(bullet_pos, left_dir * BULLET_SPEED))

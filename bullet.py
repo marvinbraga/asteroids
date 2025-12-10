@@ -4,6 +4,11 @@ from constants import BULLET_RADIUS, BULLET_LIFETIME, WHITE
 
 
 class Bullet(GameObject):
+    """Projectile fired by player or UFO with limited lifetime.
+
+    Moves in a straight line with constant velocity. Automatically deactivates
+    after lifetime expires or wraps around screen edges.
+    """
     def __init__(self, position: pygame.Vector2, velocity: pygame.Vector2):
         super().__init__(position, velocity)
         self.radius = BULLET_RADIUS

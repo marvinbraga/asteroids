@@ -66,6 +66,11 @@ POWERUP_DURATION = 10.0
 POWERUP_SPAWN_CHANCE = 0.2
 POWERUP_COLORS = {'shield': (0, 255, 255), 'speed': (255, 255, 0), 'multishot': (255, 0, 255)}
 
+# Player mechanics
+PARTICLE_FREQUENCY = 0.5  # Chance per frame to spawn thrust particle
+MULTISHOT_ANGLE = 15  # Degrees for side bullets
+SPEED_BOOST_MULTIPLIER = 1.5  # Multiplier for speed power-up
+
 # Sounds
 import pygame
 import os

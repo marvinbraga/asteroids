@@ -12,6 +12,11 @@ class Updatable(Protocol):
 
 
 class GameObject(pygame.sprite.Sprite, ABC, Drawable, Updatable):
+    """Base class for all game entities with position, velocity, and collision.
+
+    Provides common functionality for movement, screen wrapping, and sprite management.
+    All game objects should inherit from this class and implement update() and draw().
+    """
     """Base class for all game entities with position, velocity, and collision."""
 
     def __init__(self, position: pygame.Vector2, velocity: pygame.Vector2 = None) -> None:

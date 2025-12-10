@@ -10,6 +10,11 @@ ASTEROID_RADIUS_VARIANCE = (0.8, 1.2)
 
 
 class Asteroid(GameObject):
+    """Asteroid entity with irregular shape, size-based scoring, and splitting behavior.
+
+    Supports different sizes (large, medium, small) and types (normal, fast, armored).
+    When destroyed, splits into smaller asteroids. Has random rotation and shape.
+    """
     def __init__(self, position: pygame.Vector2, size: str = 'large'):
         velocity = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1))
         velocity.scale_to_length(ASTEROID_SIZES[size]['speed'])

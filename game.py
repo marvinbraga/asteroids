@@ -36,22 +36,43 @@ from highscores import get_highscores, add_highscore, is_highscore
 
 
 class Game:
+    """Main game class managing the Asteroids game loop, state, and components.
+
+    Handles initialization, game loop, input processing, updating, rendering,
+    and manages all game entities through sprite groups and state machine.
+    """
     def __init__(self) -> None:
-        pygame.init()
-        pygame.mixer.init()
+        """Initialize the game with all necessary components."""
+        self._setup_pygame()
+        self._setup_audio()
+        self._setup_ui()
+        self._load_config()
+        self._setup_sprite_groups()
+        self._setup_game_state()
+        self._setup_state_machine()
+        self._setup_managers()
+
+    def _setup_pygame(self) -> None:
+        """Initialize Pygame and basic display settings."""
+        try:
+            pygame.init()
+        except pygame.error as e:
+            raise RuntimeError(f"Failed to initialize Pygame: {e}")
+
+        try:
+            pygame.mixer.init()
+        except pygame.error as e:
+            print(f"Warning: Failed to initialize Pygame mixer: {e}. Audio will be disabled.")
+
         self.screen_width = SCREEN_WIDTH
         self.screen_height = SCREEN_HEIGHT
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         pygame.display.set_caption("Asteroids")
         self.clock = pygame.time.Clock()
         self.fps = FPS
-        self.font = pygame.font.Font(None, FONT_SIZE)
-        self.difficulty = 'normal'
-        self.input_name = ""
-        self.ui_text_cache = {}
-        self.dirty_rects = []
-        self.use_dirty_rects = False  # Set to True to enable
 
+    def _setup_audio(self) -> None:
+        """Load and initialize audio components."""
         global SOUND_SHOOT, SOUND_EXPLODE, SOUND_THRUST
         SOUND_SHOOT, SOUND_EXPLODE, SOUND_THRUST = load_sounds()
         init_channels()
@@ -60,7 +81,17 @@ class Game:
             pygame.mixer.music.play(-1)
             pygame.mixer.music.set_volume(MUSIC_VOLUME)
 
-        # Load game configuration
+    def _setup_ui(self) -> None:
+        """Initialize UI components and caching."""
+        self.font = pygame.font.Font(None, FONT_SIZE)
+        self.difficulty = 'normal'
+        self.input_name = ""
+        self.ui_text_cache = {}
+        self.dirty_rects = []
+        self.use_dirty_rects = True  # Enable optimized rendering
+
+    def _load_config(self) -> None:
+        """Load game configuration from JSON file."""
         config_path = 'config.json'
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
@@ -69,7 +100,8 @@ class Game:
             print(f"Warning: Could not load config from {config_path}: {e}")
             self.config = {}  # Fallback empty config
 
-        # Initialize sprite groups first
+    def _setup_sprite_groups(self) -> None:
+        """Initialize all sprite groups for game entities."""
         self.asteroids = pygame.sprite.Group()
         self.bullets = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
@@ -77,6 +109,8 @@ class Game:
         self.ufo_bullets = pygame.sprite.Group()
         self.explosion_particles = pygame.sprite.Group()
 
+    def _setup_game_state(self) -> None:
+        """Initialize game state variables."""
         self.apply_difficulty()
         self.score = 0
         self.lives = self.initial_lives
@@ -88,7 +122,8 @@ class Game:
         self.logic = GameLogic(self)
         self.logic.reset_game()
 
-        # Initialize state machine
+    def _setup_state_machine(self) -> None:
+        """Initialize the state machine with all game states."""
         self.state_machine = StateMachine(self)
         self.state_machine.add_state('menu', MenuState)
         self.state_machine.add_state('playing', PlayingState)
@@ -97,7 +132,8 @@ class Game:
         self.state_machine.add_state('enter_name', EnterNameState)
         self.state_machine.change_state('menu')
 
-        # Initialize managers
+    def _setup_managers(self) -> None:
+        """Initialize collision and rendering managers."""
         self.collision_manager = CollisionManager(self)
         self.renderer = GameRenderer(self)
 
@@ -120,12 +156,15 @@ class Game:
         self.state_machine.change_state(new_state_name)
 
     def update(self, dt: float) -> None:
+        """Update game logic with delta time."""
         self.logic.update(dt)
 
-    def handle_input(self, events, keys):
+    def handle_input(self, events, keys) -> None:
+        """Process input events and key states."""
         self.state_machine.handle_input(events, keys)
 
-    def draw(self):
+    def draw(self) -> None:
+        """Render the current game state to the screen."""
         self.renderer.draw(self.screen)
 
     def apply_difficulty(self) -> None:
@@ -159,7 +198,8 @@ class Game:
         self.player.rotation = 0
         self.player.invincible_timer = 2.0  # 2 seconds of invincibility
 
-    def run(self):
+    def run(self) -> None:
+        """Main game loop handling events, updates, and rendering."""
         while self.running:
             dt = self.clock.tick(self.fps) / 1000.0
 
