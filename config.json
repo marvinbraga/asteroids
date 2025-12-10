@@ -1,0 +1,13 @@
+{
+  "difficulty": {
+    "easy": {"lives": 5, "ufo_chance": 0.02},
+    "normal": {"lives": 3, "ufo_chance": 0.05},
+    "hard": {"lives": 2, "ufo_chance": 0.08}
+  },
+  "gameplay": {
+    "initial_level": 1,
+    "level_asteroid_increase": 2,
+    "base_asteroids": 4,
+    "speed_increase_per_level": 0.1
+  }
+}

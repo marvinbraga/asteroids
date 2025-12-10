@@ -20,9 +20,9 @@ class Player(GameObject):
         self.max_speed = PLAYER_MAX_SPEED
         self.drag = PLAYER_DRAG
         self.shoot_cooldown = PLAYER_SHOOT_COOLDOWN
-        self.last_shot = 0
+        self.last_shot_time = 0
         self.thrusting = False
-        self.thrust_particles = []
+        self.thrust_particles = pygame.sprite.Group()
 
         # Power-up attributes
         self.shielded = False
@@ -31,6 +31,8 @@ class Player(GameObject):
         self.powerup_timer = 0
 
     def update(self, dt: float, keys, screen_width: int, screen_height: int):
+        current_time = pygame.time.get_ticks() / 1000.0  # Convert to seconds
+
         # Track thrusting state
         was_thrusting = self.thrusting
 
@@ -66,9 +68,6 @@ class Player(GameObject):
         self.position += self.velocity * dt
         self.wrap_position(screen_width, screen_height)
 
-        # Update cooldown
-        self.last_shot += dt
-
         # Update power-up timer
         if self.powerup_timer > 0:
             self.powerup_timer -= dt
@@ -84,16 +83,15 @@ class Player(GameObject):
                 particle_pos = self.position + direction * (self.radius + 5)
                 particle_vel = direction * random.uniform(100, 200) + self.velocity * 0.5
                 particle = Particle(particle_pos, particle_vel)
-                self.thrust_particles.append(particle)
+                self.thrust_particles.add(particle)
 
         # Update particles
-        self.thrust_particles = [p for p in self.thrust_particles if p.active]
-        for particle in self.thrust_particles:
-            particle.update(dt, screen_width, screen_height)
+        self.thrust_particles.update(dt, screen_width, screen_height)
 
     def shoot(self):
-        if self.last_shot >= self.shoot_cooldown:
-            self.last_shot = 0
+        current_time = pygame.time.get_ticks() / 1000.0
+        if current_time - self.last_shot_time >= self.shoot_cooldown:
+            self.last_shot_time = current_time
             if SOUND_SHOOT:
                 SOUND_SHOOT.play()
             direction = pygame.Vector2(0, -1).rotate(self.rotation)
@@ -127,8 +125,7 @@ class Player(GameObject):
         pygame.draw.polygon(screen, WHITE, rotated_points, 2)
 
         # Draw thrust particles
-        for particle in self.thrust_particles:
-            particle.draw(screen)
+        self.thrust_particles.draw(screen)
 
         # Draw thrust flame
         if self.thrusting:

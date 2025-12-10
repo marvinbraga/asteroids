@@ -9,10 +9,11 @@ class PowerUp(GameObject):
         self.type = type_
         self.radius = POWERUP_RADIUS
         self.color = POWERUP_COLORS[type_]
-        self.lifetime = POWERUP_DURATION  # seconds before disappearing
+        self.spawn_time = pygame.time.get_ticks() / 1000.0
 
     def update(self, dt: float, screen_width: int, screen_height: int):
-        self.lifetime -= dt
+        current_time = pygame.time.get_ticks() / 1000.0
+        self.lifetime = POWERUP_DURATION - (current_time - self.spawn_time)
         if self.lifetime <= 0:
             self.active = False
         self.wrap_position(screen_width, screen_height)

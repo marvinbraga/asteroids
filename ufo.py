@@ -10,11 +10,10 @@ class UFO(GameObject):
         super().__init__(position, velocity)
         self.radius = UFO_RADIUS
         self.screen_width = screen_width
-        self.last_shot = 0
+        self.last_shot_time = 0
         self.shoot_interval = UFO_SHOOT_INTERVAL
 
     def update(self, dt: float, screen_width: int, screen_height: int, player_pos: pygame.Vector2):
-        self.last_shot += dt
         self.position += self.velocity * dt
         # Horizontal wrap
         if self.position.x < 0:
@@ -23,8 +22,9 @@ class UFO(GameObject):
             self.position.x = 0
 
     def shoot(self, player_pos: pygame.Vector2):
-        if self.last_shot >= self.shoot_interval:
-            self.last_shot = 0
+        current_time = pygame.time.get_ticks() / 1000.0
+        if current_time - self.last_shot_time >= self.shoot_interval:
+            self.last_shot_time = current_time
             direction = (player_pos - self.position).normalize()
             bullet = Bullet(self.position, direction * (BULLET_SPEED * 0.7))  # Slower bullets
             return bullet

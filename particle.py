@@ -21,9 +21,15 @@ class Particle(GameObject):
         # Optional: fade velocity or wrap
 
     def draw(self, screen: pygame.Surface):
+        if self.lifetime <= 0:
+            return
+
+        size = 5  # Fixed size
         alpha = int(255 * (self.lifetime / PARTICLE_LIFETIME))
-        color_with_alpha = (*self.color, alpha)
-        # Note: pygame.draw.circle doesn't support alpha directly
-        # For simplicity, use solid color and size fade
-        size = max(1, int(5 * (self.lifetime / PARTICLE_LIFETIME)))
-        pygame.draw.circle(screen, self.color, (int(self.position.x), int(self.position.y)), size)
+
+        # Create surface with alpha
+        particle_surf = pygame.Surface((size * 2, size * 2), pygame.SRCALPHA)
+        pygame.draw.circle(particle_surf, (*self.color, alpha), (size, size), size)
+
+        # Blit to screen
+        screen.blit(particle_surf, self.position - pygame.Vector2(size, size))
