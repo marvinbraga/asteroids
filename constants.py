@@ -40,3 +40,62 @@ SPEED_INCREASE_PER_LEVEL = 0.1
 
 # UI
 FONT_SIZE = 36
+
+# Particles
+PARTICLE_LIFETIME = 1.0
+PARTICLE_COUNT_EXPLODE = 8
+PARTICLE_SPEED = 200
+PARTICLE_COLORS = [(255, 255, 0), (255, 165, 0), (255, 0, 0)]  # Yellow, Orange, Red
+
+# Asteroid variations
+ASTEROID_COLORS = [(128, 128, 128), (160, 160, 160), (100, 100, 100), (140, 140, 140)]
+
+# UFO
+UFO_RADIUS = 15
+UFO_SPEED = 100
+UFO_SHOOT_INTERVAL = 2.5
+UFO_SPAWN_LEVEL = 3
+UFO_SPAWN_CHANCE = 0.05
+UFO_SCORE = 200
+UFO_COLOR = (255, 0, 0)  # Red
+
+# Power-ups
+POWERUP_TYPES = ['shield', 'speed', 'multishot']
+POWERUP_RADIUS = 10
+POWERUP_DURATION = 10.0
+POWERUP_SPAWN_CHANCE = 0.2
+POWERUP_COLORS = {'shield': (0, 255, 255), 'speed': (255, 255, 0), 'multishot': (255, 0, 255)}
+
+# Sounds
+import pygame
+import os
+
+SOUNDS_DIR = 'assets/sounds'
+SOUND_SHOOT = None
+SOUND_EXPLODE = None
+SOUND_THRUST = None
+MUSIC_BACKGROUND = os.path.join(SOUNDS_DIR, 'background.mp3')
+THRUST_CHANNEL = None
+MASTER_VOLUME = 0.7
+MUSIC_VOLUME = 0.5
+SFX_VOLUME = 0.6
+
+def load_sounds():
+    global SOUND_SHOOT, SOUND_EXPLODE, SOUND_THRUST
+    try:
+        SOUND_SHOOT = pygame.mixer.Sound(os.path.join(SOUNDS_DIR, 'shoot.wav')) if os.path.exists(os.path.join(SOUNDS_DIR, 'shoot.wav')) else None
+        SOUND_EXPLODE = pygame.mixer.Sound(os.path.join(SOUNDS_DIR, 'explode.wav')) if os.path.exists(os.path.join(SOUNDS_DIR, 'explode.wav')) else None
+        SOUND_THRUST = pygame.mixer.Sound(os.path.join(SOUNDS_DIR, 'thrust.wav')) if os.path.exists(os.path.join(SOUNDS_DIR, 'thrust.wav')) else None
+        if SOUND_SHOOT:
+            SOUND_SHOOT.set_volume(SFX_VOLUME)
+        if SOUND_EXPLODE:
+            SOUND_EXPLODE.set_volume(SFX_VOLUME)
+        if SOUND_THRUST:
+            SOUND_THRUST.set_volume(SFX_VOLUME)
+    except Exception as e:
+        print(f"Warning: Could not load sounds: {e}")
+        SOUND_SHOOT = SOUND_EXPLODE = SOUND_THRUST = None
+
+def init_channels():
+    global THRUST_CHANNEL
+    THRUST_CHANNEL = pygame.mixer.Channel(1)

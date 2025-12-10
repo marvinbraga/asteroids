@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from game_object import GameObject
-from constants import ASTEROID_SIZES, GRAY
+from constants import ASTEROID_SIZES, GRAY, ASTEROID_COLORS
 
 
 class Asteroid(GameObject):
@@ -14,12 +14,23 @@ class Asteroid(GameObject):
         self.radius = ASTEROID_SIZES[size]['radius']
         self.rotation_speed = random.uniform(-90, 90)  # degrees per second
         self.score_value = ASTEROID_SIZES[size]['score']
+        self.type = random.choice(['normal', 'fast', 'armored'])
+        # Adjust based on type
+        if self.type == 'fast':
+            self.velocity.scale_to_length(ASTEROID_SIZES[size]['speed'] * 1.5)
+            self.score_value = int(ASTEROID_SIZES[size]['score'] * 1.2)
+        elif self.type == 'armored':
+            self.hitpoints = 2
+            self.score_value = ASTEROID_SIZES[size]['score'] * 2
+        else:
+            self.hitpoints = 1  # normal
         self.shape_points = self._generate_shape()
+        self.color = random.choice(ASTEROID_COLORS)
 
     def _generate_shape(self):
         """Generate irregular asteroid shape"""
         points = []
-        num_points = random.randint(6, 12)
+        num_points = random.randint(5, 14)
         for i in range(num_points):
             angle = (i / num_points) * 2 * math.pi
             distance = self.radius * random.uniform(0.8, 1.2)
@@ -38,7 +49,7 @@ class Asteroid(GameObject):
             rotated = point.rotate(self.rotation)
             rotated_points.append((self.position.x + rotated.x, self.position.y + rotated.y))
 
-        pygame.draw.polygon(screen, GRAY, rotated_points, 2)
+        pygame.draw.polygon(screen, self.color, rotated_points, 2)
 
     def split(self):
         """Return smaller asteroids when destroyed"""

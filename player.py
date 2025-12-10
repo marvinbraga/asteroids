@@ -1,9 +1,12 @@
 import pygame
+import random
 from game_object import GameObject
 from bullet import Bullet
+from particle import Particle
 from constants import (
     PLAYER_RADIUS, PLAYER_ROTATION_SPEED, PLAYER_THRUST, PLAYER_MAX_SPEED,
-    PLAYER_DRAG, PLAYER_SHOOT_COOLDOWN, BULLET_SPEED, WHITE, ORANGE
+    PLAYER_DRAG, PLAYER_SHOOT_COOLDOWN, BULLET_SPEED, WHITE, ORANGE,
+    SOUND_SHOOT, THRUST_CHANNEL, SOUND_THRUST
 )
 import math
 
@@ -19,8 +22,18 @@ class Player(GameObject):
         self.shoot_cooldown = PLAYER_SHOOT_COOLDOWN
         self.last_shot = 0
         self.thrusting = False
+        self.thrust_particles = []
+
+        # Power-up attributes
+        self.shielded = False
+        self.speed_boost = 1.0
+        self.multishot = False
+        self.powerup_timer = 0
 
     def update(self, dt: float, keys, screen_width: int, screen_height: int):
+        # Track thrusting state
+        was_thrusting = self.thrusting
+
         # Rotation
         if keys[pygame.K_LEFT] or keys[pygame.K_a]:
             self.rotation -= self.rotation_speed * dt
@@ -29,13 +42,22 @@ class Player(GameObject):
 
         # Thrust
         self.thrusting = keys[pygame.K_UP] or keys[pygame.K_w]
+
+        if self.thrusting and not was_thrusting:
+            if THRUST_CHANNEL:
+                THRUST_CHANNEL.play(SOUND_THRUST, loops=-1)
+        elif not self.thrusting and was_thrusting:
+            if THRUST_CHANNEL:
+                THRUST_CHANNEL.stop()
         if self.thrusting:
             direction = pygame.Vector2(0, -1).rotate(self.rotation)
-            self.velocity += direction * self.thrust * dt
+            effective_thrust = self.thrust * self.speed_boost
+            self.velocity += direction * effective_thrust * dt
 
         # Limit speed
-        if self.velocity.length() > self.max_speed:
-            self.velocity.scale_to_length(self.max_speed)
+        effective_max_speed = self.max_speed * self.speed_boost
+        if self.velocity.length() > effective_max_speed:
+            self.velocity.scale_to_length(effective_max_speed)
 
         # Apply drag
         self.velocity *= self.drag
@@ -47,13 +69,45 @@ class Player(GameObject):
         # Update cooldown
         self.last_shot += dt
 
+        # Update power-up timer
+        if self.powerup_timer > 0:
+            self.powerup_timer -= dt
+            if self.powerup_timer <= 0:
+                self.shielded = False
+                self.speed_boost = 1.0
+                self.multishot = False
+
+        # Spawn thrust particles
+        if self.thrusting:
+            if random.random() < 0.5:  # Adjust frequency
+                direction = pygame.Vector2(0, 1).rotate(self.rotation)  # Backwards
+                particle_pos = self.position + direction * (self.radius + 5)
+                particle_vel = direction * random.uniform(100, 200) + self.velocity * 0.5
+                particle = Particle(particle_pos, particle_vel)
+                self.thrust_particles.append(particle)
+
+        # Update particles
+        self.thrust_particles = [p for p in self.thrust_particles if p.active]
+        for particle in self.thrust_particles:
+            particle.update(dt, screen_width, screen_height)
+
     def shoot(self):
         if self.last_shot >= self.shoot_cooldown:
             self.last_shot = 0
+            if SOUND_SHOOT:
+                SOUND_SHOOT.play()
             direction = pygame.Vector2(0, -1).rotate(self.rotation)
             bullet_pos = self.position + direction * (self.radius + 5)
-            return Bullet(bullet_pos, direction * BULLET_SPEED)
-        return None
+            bullets = [Bullet(bullet_pos, direction * BULLET_SPEED)]
+            if self.multishot:
+                # Add side bullets
+                side_angle = 15  # degrees
+                left_dir = direction.rotate(-side_angle)
+                right_dir = direction.rotate(side_angle)
+                bullets.append(Bullet(bullet_pos, left_dir * BULLET_SPEED))
+                bullets.append(Bullet(bullet_pos, right_dir * BULLET_SPEED))
+            return bullets
+        return []
 
     def draw(self, screen: pygame.Surface):
         # Ship shape (triangle)
@@ -71,6 +125,10 @@ class Player(GameObject):
 
         # Draw ship
         pygame.draw.polygon(screen, WHITE, rotated_points, 2)
+
+        # Draw thrust particles
+        for particle in self.thrust_particles:
+            particle.draw(screen)
 
         # Draw thrust flame
         if self.thrusting:
