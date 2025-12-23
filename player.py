@@ -5,7 +5,7 @@ from bullet import Bullet
 from particle import Particle
 from constants import (
     PLAYER_RADIUS, PLAYER_ROTATION_SPEED, PLAYER_THRUST, PLAYER_MAX_SPEED,
-    PLAYER_DRAG, PLAYER_SHOOT_COOLDOWN, BULLET_SPEED, WHITE, ORANGE,
+    PLAYER_DRAG, PLAYER_SHOOT_COOLDOWN, BULLET_SPEED, PLAYER_COLOR, WHITE, ORANGE,
     SOUND_SHOOT, THRUST_CHANNEL, SOUND_THRUST, PARTICLE_FREQUENCY,
     MULTISHOT_ANGLE, SPEED_BOOST_MULTIPLIER
 )
@@ -135,10 +135,30 @@ class Player(GameObject):
         rotated_points = []
         for point in points:
             rotated = point.rotate(self.rotation)
-            rotated_points.append((self.position.x + rotated.x, self.position.y + rotated.y))
+            rotated_points.append(pygame.Vector2(rotated.x, rotated.y))
 
-        # Draw ship
-        pygame.draw.polygon(screen, WHITE, rotated_points, 2)
+        # Create glow surface
+        glow_size = int(self.radius * 3)
+        glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+        center = pygame.Vector2(glow_size, glow_size)
+
+        # Translate points to local surface coordinates
+        local_points = [(p + center) for p in rotated_points]
+
+        # Draw Glow (Thick, transparent)
+        glow_color = (*PLAYER_COLOR, 100)  # Add alpha
+        pygame.draw.polygon(glow_surf, glow_color, local_points, 6)
+        
+        # Draw Core (Thin, solid)
+        pygame.draw.polygon(glow_surf, PLAYER_COLOR, local_points, 2)
+        
+        # Shield effect
+        if self.shielded:
+            pygame.draw.circle(glow_surf, (0, 255, 255, 100), center, self.radius + 5, 2)
+
+        # Blit to screen
+        screen_pos = self.position - center
+        screen.blit(glow_surf, screen_pos)
 
         # Draw thrust particles
         self.thrust_particles.draw(screen)
@@ -147,11 +167,13 @@ class Player(GameObject):
         if self.thrusting:
             flame_points = [
                 pygame.Vector2(-self.radius * 0.3, self.radius * 0.7),
-                pygame.Vector2(0, self.radius * 1.2),
+                pygame.Vector2(0, self.radius * 1.5),
                 pygame.Vector2(self.radius * 0.3, self.radius * 0.7)
             ]
-            rotated_flame = []
-            for point in flame_points:
-                rotated = point.rotate(self.rotation)
-                rotated_flame.append((self.position.x + rotated.x, self.position.y + rotated.y))
-            pygame.draw.polygon(screen, ORANGE, rotated_flame)
+            
+            flame_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+            local_flame = [(p.rotate(self.rotation) + center) for p in flame_points]
+            
+            pygame.draw.polygon(flame_surf, (*ORANGE, 150), local_flame)
+            pygame.draw.polygon(flame_surf, (255, 255, 0, 200), local_flame, 2)
+            screen.blit(flame_surf, screen_pos)

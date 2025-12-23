@@ -1,6 +1,6 @@
 import pygame
 from game_object import GameObject
-from constants import BULLET_RADIUS, BULLET_LIFETIME, WHITE
+from constants import BULLET_RADIUS, BULLET_LIFETIME, BULLET_COLOR
 
 
 class Bullet(GameObject):
@@ -25,4 +25,16 @@ class Bullet(GameObject):
         self.wrap_position(screen_width, screen_height)
 
     def draw(self, screen: pygame.Surface):
-        pygame.draw.circle(screen, (255, 0, 0), (int(self.position.x), int(self.position.y)), self.radius)
+        # Create glow surface
+        glow_radius = int(self.radius * 3)
+        glow_surf = pygame.Surface((glow_radius * 2, glow_radius * 2), pygame.SRCALPHA)
+        center = (glow_radius, glow_radius)
+
+        # Draw Glow
+        pygame.draw.circle(glow_surf, (*BULLET_COLOR, 100), center, int(self.radius * 2))
+        
+        # Draw Core
+        pygame.draw.circle(glow_surf, BULLET_COLOR, center, self.radius)
+        
+        # Blit
+        screen.blit(glow_surf, (self.position.x - glow_radius, self.position.y - glow_radius))

@@ -27,14 +27,32 @@ class UFO(GameObject):
             self.last_shot_time = current_time
             direction = (player_pos - self.position).normalize()
             bullet = Bullet(self.position, direction * (BULLET_SPEED * 0.7))  # Slower bullets
+            bullet.lifetime = 1.5 # Shorter lifetime
+            # Ufo bullets should probably be a different color, but using standard for now or we can override draw in a subclass if needed.
+            # Actually, standard Bullet class uses BULLET_COLOR. UFO bullet could use Red if passed or subclassed.
+            # For now, yellow bullets from UFO are fine or we can change bullet color logic later.
             return bullet
         return None
 
     def draw(self, screen: pygame.Surface):
-        # Simple triangle shape
+        # Shape points (relative to center 0,0)
         points = [
-            (self.position.x, self.position.y - self.radius),
-            (self.position.x - self.radius, self.position.y + self.radius),
-            (self.position.x + self.radius, self.position.y + self.radius)
+            pygame.Vector2(0, -self.radius),
+            pygame.Vector2(-self.radius, self.radius),
+            pygame.Vector2(self.radius, self.radius)
         ]
-        pygame.draw.polygon(screen, UFO_COLOR, points, 2)
+        
+        glow_size = int(self.radius * 2.5)
+        glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+        center = pygame.Vector2(glow_size, glow_size)
+
+        local_points = [p + center for p in points]
+
+        # Draw Glow
+        glow_color = (*UFO_COLOR, 100)
+        pygame.draw.polygon(glow_surf, glow_color, local_points, 5)
+
+        # Draw Core
+        pygame.draw.polygon(glow_surf, UFO_COLOR, local_points, 2)
+
+        screen.blit(glow_surf, self.position - center)

@@ -2,7 +2,7 @@ import pygame
 import random
 import math
 from game_object import GameObject
-from constants import ASTEROID_SIZES, GRAY, ASTEROID_COLORS
+from constants import ASTEROID_SIZES, ASTEROID_COLORS
 
 ASTEROID_MIN_POINTS = 5
 ASTEROID_MAX_POINTS = 14
@@ -26,7 +26,7 @@ class Asteroid(GameObject):
         self.type = random.choice(['normal', 'fast', 'armored'])
         # Adjust based on type
         if self.type == 'fast':
-            self.velocity.scale_to_length(ASTEROID_SIZES[size]['speed'] * 1.5)
+            self.velocity.scale_to_length(ASTEROID_SIZES[size]['speed'] * 1.2)
             self.score_value = int(ASTEROID_SIZES[size]['score'] * 1.2)
         elif self.type == 'armored':
             self.hitpoints = 2
@@ -53,13 +53,31 @@ class Asteroid(GameObject):
         self.wrap_position(screen_width, screen_height)
 
     def draw(self, screen: pygame.Surface):
-        # Rotate shape points
+        # Create glow surface
+        glow_size = int(self.radius * 2.5)
+        glow_surf = pygame.Surface((glow_size * 2, glow_size * 2), pygame.SRCALPHA)
+        center = pygame.Vector2(glow_size, glow_size)
+
+        # Rotate and translate shape points to local coordinates
         rotated_points = []
         for point in self.shape_points:
             rotated = point.rotate(self.rotation)
-            rotated_points.append((self.position.x + rotated.x, self.position.y + rotated.y))
+            rotated_points.append(center + rotated)
 
-        pygame.draw.polygon(screen, self.color, rotated_points, 2)
+        # Draw Glow (Thick, transparent)
+        if len(self.color) == 3:
+            glow_color = (*self.color, 100)
+        else:
+            glow_color = self.color # Already has alpha? No, ASTEROID_COLORS are RGB tuples in constants usually
+        
+        pygame.draw.polygon(glow_surf, glow_color, rotated_points, 5)
+        
+        # Draw Core (Thin, solid)
+        pygame.draw.polygon(glow_surf, self.color, rotated_points, 2)
+        
+        # Blit to screen
+        screen_pos = self.position - center
+        screen.blit(glow_surf, screen_pos)
 
     def split(self):
         """Return smaller asteroids when destroyed"""
